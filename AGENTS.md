@@ -28,3 +28,6 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project decisions
+- Keep the sales worksheet in browser local storage and keep calculations and filtering in a pure shared module, because the requested ledger is browser-local and needs no shared account or database.

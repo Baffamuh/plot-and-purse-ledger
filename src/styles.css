@@ -56,6 +56,9 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-paid: var(--paid);
+  --color-deposit: var(--deposit);
+  --color-installment: var(--installment);
   --color-ring-offset-background: var(--background);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -74,25 +77,28 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
+  --background: oklch(0.978 0.009 155);
+  --foreground: oklch(0.22 0.025 165);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
+  --card-foreground: oklch(0.22 0.025 165);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
+  --popover-foreground: oklch(0.22 0.025 165);
+  --primary: oklch(0.43 0.12 155);
+  --primary-foreground: oklch(0.985 0.004 155);
+  --secondary: oklch(0.936 0.024 153);
+  --secondary-foreground: oklch(0.27 0.045 158);
+  --muted: oklch(0.948 0.015 155);
+  --muted-foreground: oklch(0.49 0.035 164);
+  --accent: oklch(0.93 0.055 83);
+  --accent-foreground: oklch(0.34 0.075 74);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
+  --border: oklch(0.895 0.018 154);
+  --input: oklch(0.895 0.018 154);
+  --ring: oklch(0.56 0.11 155);
+  --paid: oklch(0.5 0.14 154);
+  --deposit: oklch(0.58 0.15 78);
+  --installment: oklch(0.51 0.14 244);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -109,25 +115,28 @@
 }
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
+  --background: oklch(0.17 0.022 165);
+  --foreground: oklch(0.96 0.012 155);
+  --card: oklch(0.22 0.025 165);
+  --card-foreground: oklch(0.96 0.012 155);
+  --popover: oklch(0.22 0.025 165);
+  --popover-foreground: oklch(0.96 0.012 155);
+  --primary: oklch(0.69 0.13 155);
+  --primary-foreground: oklch(0.18 0.035 160);
+  --secondary: oklch(0.28 0.035 160);
+  --secondary-foreground: oklch(0.94 0.015 155);
+  --muted: oklch(0.28 0.03 160);
+  --muted-foreground: oklch(0.73 0.025 160);
+  --accent: oklch(0.34 0.055 78);
+  --accent-foreground: oklch(0.94 0.04 82);
   --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.68 0.11 155);
+  --paid: oklch(0.74 0.13 154);
+  --deposit: oklch(0.78 0.13 78);
+  --installment: oklch(0.75 0.12 244);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -151,5 +160,231 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+  }
+}
+
+.print-area {
+  display: none;
+}
+
+.receipt-sheet {
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+.receipt-header,
+.receipt-title-row,
+.receipt-transaction-heading,
+.receipt-amount-row,
+.receipt-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.receipt-header {
+  border-bottom: 2px solid var(--primary);
+  padding-bottom: 1.25rem;
+}
+
+.receipt-brand-mark {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border-radius: 0.35rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.receipt-header > div:nth-child(2) {
+  flex: 1;
+}
+
+.receipt-header h1 {
+  margin: 0.25rem 0 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.receipt-eyebrow,
+.receipt-kind,
+.receipt-number span,
+.receipt-line span,
+.receipt-agent span,
+.receipt-signatures span,
+.receipt-footer,
+.receipt-disclaimer {
+  color: var(--muted-foreground);
+  font-size: 0.7rem;
+}
+
+.receipt-eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.receipt-kind {
+  border: 1px solid var(--border);
+  padding: 0.45rem 0.6rem;
+  font-weight: 700;
+}
+
+.receipt-title-row {
+  margin: 1.5rem 0;
+}
+
+.receipt-title-row h2,
+.receipt-transaction h2 {
+  margin: 0.25rem 0 0;
+  font-size: 1.2rem;
+}
+
+.receipt-number {
+  display: grid;
+  gap: 0.3rem;
+  text-align: right;
+}
+
+.receipt-number strong {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.receipt-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.receipt-section,
+.receipt-transaction {
+  border: 1px solid var(--border);
+  padding: 1rem;
+}
+
+.receipt-section h3 {
+  margin: 0 0 0.7rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.6rem;
+  font-size: 0.78rem;
+}
+
+.receipt-line {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  gap: 0.5rem;
+  margin: 0.45rem 0;
+  font-size: 0.72rem;
+}
+
+.receipt-line strong {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.receipt-transaction {
+  margin-top: 1rem;
+}
+
+.receipt-transaction-heading {
+  margin-bottom: 0.7rem;
+}
+
+.receipt-transaction-heading > span {
+  color: var(--muted-foreground);
+  font-size: 0.72rem;
+}
+
+.receipt-amount-row {
+  border-top: 1px solid var(--border);
+  padding: 0.65rem 0;
+  font-size: 0.82rem;
+}
+
+.receipt-balance {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.receipt-payment-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.75rem;
+  font-size: 0.7rem;
+}
+
+.receipt-agent {
+  display: grid;
+  grid-template-columns: 6rem 1fr 6rem 1fr 5rem 1fr;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 1rem;
+  border: 1px solid var(--border);
+  padding: 0.85rem 1rem;
+  font-size: 0.72rem;
+}
+
+.receipt-disclaimer {
+  margin: 1rem 0;
+}
+
+.receipt-signatures {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.receipt-signatures > div {
+  display: grid;
+  gap: 2.6rem;
+}
+
+.receipt-signatures i {
+  border-bottom: 1px solid var(--foreground);
+}
+
+.receipt-footer {
+  margin-top: 2rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.7rem;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .print-area,
+  .print-area * {
+    visibility: visible !important;
+  }
+
+  .print-area {
+    position: absolute;
+    inset: 0;
+    display: block !important;
+    width: 100%;
+  }
+
+  .receipt-sheet {
+    width: 100%;
+    color: var(--foreground);
+    font-size: 10pt;
+  }
+
+  .receipt-grid,
+  .receipt-transaction,
+  .receipt-agent,
+  .receipt-signatures {
+    break-inside: avoid;
   }
 }
