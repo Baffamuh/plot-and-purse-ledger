@@ -28,4 +28,18 @@ describe("sales worksheet rules", () => {
       "Bilkisu Umar",
     ]);
   });
+
+  it("returns all five sample records when no filters are active", () => {
+    const filters: SaleFilters = {
+      query: "",
+      propertyType: "",
+      paymentStatus: "",
+      agent: "",
+      location: "",
+      startDate: "",
+      endDate: "",
+    };
+
+    expect(filterSales(SAMPLE_SALES, filters)).toEqual(SAMPLE_SALES);
+  });
 });

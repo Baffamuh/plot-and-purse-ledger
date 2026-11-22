@@ -21,7 +21,6 @@ import {
   SlidersHorizontal,
   Users,
   Wallet,
-  X,
 } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 
@@ -36,6 +35,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import rahamaLogo from "@/assets/rahama-logo.jpg.asset.json";
 import {
   PAYMENT_METHODS,
   PAYMENT_STATUSES,
@@ -69,15 +69,15 @@ const INITIAL_FILTERS: SaleFilters = {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Property Sales Ledger | Azare" },
+      { title: "Sales Ledger | Rahama Land & Property Development Ltd." },
       {
         name: "description",
-        content: "Record, review, and print property sales and payment receipts for Azare." ,
+        content: "Manage property sales, payments, buyer records, and printable receipts for Rahama Land & Property Development Ltd.",
       },
-      { property: "og:title", content: "Property Sales Ledger | Azare" },
+      { property: "og:title", content: "Sales Ledger | Rahama Land & Property Development Ltd." },
       {
         property: "og:description",
-        content: "A clear sales worksheet for property transactions, payments, and receipts in Azare.",
+        content: "A clear sales worksheet for Rahama property transactions, payments, and receipts.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -298,7 +298,7 @@ function Index() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `azare-sales-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.download = `rahama-property-sales-${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.append(link);
     link.click();
     link.remove();
@@ -318,12 +318,14 @@ function Index() {
     <div className="min-h-screen bg-muted/40">
       <div className="flex min-h-screen">
         <aside className="hidden w-64 shrink-0 flex-col border-r bg-background px-5 py-6 md:flex">
-          <div className="flex items-center gap-3 px-1">
-            <div className="flex size-11 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <Building2 className="size-5" aria-hidden="true" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold leading-tight">Property ledger</p>
+          <div className="flex items-center gap-3">
+            <img
+              src={rahamaLogo.url}
+              alt="Rahama Land & Property Development Ltd."
+              className="h-12 w-14 shrink-0 rounded-md border bg-background object-contain p-1"
+            />
+            <div className="min-w-0">
+              <p className="text-xs font-semibold leading-snug">Rahama Land &amp; Property Development Ltd.</p>
               <p className="mt-1 text-xs text-muted-foreground">Azare · Bauchi</p>
             </div>
           </div>
@@ -356,13 +358,15 @@ function Index() {
 
         <main className="min-w-0 flex-1">
           <header className="border-b bg-background">
-            <div className="mx-auto flex min-h-16 max-w-[1560px] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+            <div className="mx-auto grid min-h-16 max-w-[1560px] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:flex sm:justify-between sm:px-6 lg:px-8">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground md:hidden">
-                  <Building2 className="size-4" aria-hidden="true" />
-                </div>
+                <img
+                  src={rahamaLogo.url}
+                  alt=""
+                  className="size-9 shrink-0 rounded-md border bg-background object-contain p-0.5 md:hidden"
+                />
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground md:hidden">Azare · Bauchi</p>
+                  <p className="text-xs text-muted-foreground md:hidden">Rahama · Azare</p>
                   <p className="truncate text-sm font-semibold">Sales register</p>
                 </div>
               </div>
@@ -387,10 +391,10 @@ function Index() {
           <div className="mx-auto max-w-[1560px] space-y-7 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
             <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-primary">Property transactions</p>
+                <p className="text-xs font-semibold uppercase text-primary">Rahama Land &amp; Property Development Ltd.</p>
                 <h1 className="mt-2 text-2xl font-semibold tracking-normal sm:text-3xl">Sales ledger</h1>
                 <p className="mt-1.5 text-sm text-muted-foreground">
-                  Review completed sales, active payment plans, and property balances.
+                  Review completed sales, payment plans, and property balances across Azare.
                 </p>
               </div>
               <p className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -583,20 +587,17 @@ function Index() {
                       onChange={(event) => changeFilter("endDate", event.currentTarget.value)}
                     />
                   </div>
-                  {hasActiveFilters ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setFilters(INITIAL_FILTERS)}
-                      className="self-start text-muted-foreground sm:self-auto"
-                    >
-                      <X aria-hidden="true" /> Clear filters
-                    </Button>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">
-                      <Check className="mr-1 inline size-3.5 text-paid" aria-hidden="true" /> All records included
-                    </span>
-                  )}
+                  <Button
+                    variant={hasActiveFilters ? "outline" : "secondary"}
+                    size="sm"
+                    onClick={() => setFilters(INITIAL_FILTERS)}
+                    aria-pressed={!hasActiveFilters}
+                    title="Show every sale in the register"
+                    className="self-start sm:self-auto"
+                  >
+                    <List aria-hidden="true" /> All records
+                    <span className="ml-1 tabular-nums">{sales.length}</span>
+                  </Button>
                 </div>
               </div>
 
@@ -1072,10 +1073,10 @@ function SaleDialog({
                   <Input id="receiptNumber" readOnly value={draft.receiptNumber} className="bg-muted font-mono text-sm" />
                 </FormField>
                 <FormField id="agreedPrice" label="Agreed price (₦)">
-                  <Input id="agreedPrice" required min="1" step="1000" type="number" inputMode="numeric" value={draft.agreedPrice || ""} onChange={(event) => onMoneyChange("agreedPrice", event.currentTarget.value)} />
+                  <Input id="agreedPrice" required min="1" step="1" type="number" inputMode="numeric" value={draft.agreedPrice || ""} onChange={(event) => onMoneyChange("agreedPrice", event.currentTarget.value)} />
                 </FormField>
                 <FormField id="amountPaid" label="Amount paid to date (₦)">
-                  <Input id="amountPaid" min="0" step="1000" type="number" inputMode="numeric" value={draft.amountPaid || ""} onChange={(event) => onMoneyChange("amountPaid", event.currentTarget.value)} />
+                  <Input id="amountPaid" min="0" step="1" type="number" inputMode="numeric" value={draft.amountPaid || ""} onChange={(event) => onMoneyChange("amountPaid", event.currentTarget.value)} />
                 </FormField>
                 <FormField id="balance" label="Outstanding balance (₦)">
                   <Input id="balance" readOnly value={formatNaira(calculateBalance(draft.agreedPrice, draft.amountPaid))} className="bg-secondary font-semibold tabular-nums" />
@@ -1169,10 +1170,11 @@ function Receipt({ sale }: { sale: SaleRecord }) {
   return (
     <div className="receipt-sheet">
       <header className="receipt-header">
-        <div className="receipt-brand-mark"><Building2 size={22} aria-hidden="true" /></div>
+        <img src={rahamaLogo.url} alt="Rahama Land & Property Development Ltd." className="receipt-logo" />
         <div>
           <p className="receipt-eyebrow">Property sales · Azare, Bauchi</p>
-          <h1>PROPERTY SALES LEDGER</h1>
+          <h1>Rahama Land &amp; Property Development Ltd.</h1>
+          <p className="receipt-company-number">RC No. 9871926</p>
         </div>
         <div className="receipt-kind">OFFICIAL SALE SLIP</div>
       </header>
@@ -1236,7 +1238,7 @@ function Receipt({ sale }: { sale: SaleRecord }) {
         <div><span>Company director</span><i /></div>
       </div>
       <footer className="receipt-footer">
-        <span>PROPERTY SALES LEDGER · AZARE</span>
+        <span>RAHAMA LAND &amp; PROPERTY DEVELOPMENT LTD. · RC NO. 9871926</span>
         <span>{sale.receiptNumber}</span>
       </footer>
     </div>
