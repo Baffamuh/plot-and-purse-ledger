@@ -42,6 +42,10 @@ export type SaleRecord = {
   paymentMethod: PaymentMethod;
   paymentReference: string;
   receiptNumber: string;
+  /** Date the buyer promised to settle any remaining balance. */
+  settlementDate?: string;
+  /** Instalment/batch plan notes, e.g. "3 monthly batches of ₦1,000,000". */
+  batchPlan?: string;
 };
 
 export type SaleFilters = {
@@ -279,4 +283,63 @@ export function isSaleRecord(value: unknown): value is SaleRecord {
     typeof record["agreedPrice"] === "number" &&
     typeof record["amountPaid"] === "number"
   );
+}
+export type PaymentPlan = "Full payment" | "Batch payment";
+
+/** Any sale with money still owed is treated as a batch (instalment) payment. */
+export function getPaymentPlan(sale: Pick<SaleRecord, "agreedPrice" | "amountPaid">): PaymentPlan {
+  return calculateBalance(sale.agreedPrice, sale.amountPaid) > 0 ? "Batch payment" : "Full payment";
+}
+
+export const BACKUP_FORMAT = "rahama-sales-backup";
+
+export type SalesBackup = {
+  format: typeof BACKUP_FORMAT;
+  version: 1;
+  company: string;
+  createdAt: string;
+  recordCount: number;
+  checksum: string;
+  records: SaleRecord[];
+};
+
+/** Simple integrity fingerprint (FNV-1a) so tampered or damaged backups are rejected. */
+export function checksumRecords(records: SaleRecord[]): string {
+  const text = JSON.stringify(records);
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(16).padStart(8, "0");
+}
+
+export function createBackup(records: SaleRecord[], createdAt: string): SalesBackup {
+  return {
+    format: BACKUP_FORMAT,
+    version: 1,
+    company: "Rahama Land & Property Development Ltd.",
+    createdAt,
+    recordCount: records.length,
+    checksum: checksumRecords(records),
+    records,
+  };
+}
+
+export function parseBackup(text: string): { ok: true; records: SaleRecord[]; createdAt: string } | { ok: false; error: string } {
+  let data: unknown;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    return { ok: false, error: "This file is not a readable backup." };
+  }
+  const backup = data as Partial<SalesBackup> | null;
+  if (!backup || backup.format !== BACKUP_FORMAT || !Array.isArray(backup.records)) {
+    return { ok: false, error: "This is not a Rahama sales backup file." };
+  }
+  if (!backup.records.every(isSaleRecord)) return { ok: false, error: "Some records in this backup are damaged." };
+  if (backup.recordCount !== backup.records.length || backup.checksum !== checksumRecords(backup.records)) {
+    return { ok: false, error: "This backup failed its safety check and may have been changed." };
+  }
+  return { ok: true, records: backup.records, createdAt: String(backup.createdAt ?? "") };
 }

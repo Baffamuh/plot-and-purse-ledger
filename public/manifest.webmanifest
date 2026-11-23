@@ -1,0 +1,17 @@
+{
+  "name": "Rahama Sales Ledger",
+  "short_name": "Rahama Ledger",
+  "description": "Sales worksheet for Rahama Land & Property Development Ltd.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone"],
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#14532d",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

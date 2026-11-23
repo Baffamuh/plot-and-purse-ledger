@@ -8,6 +8,8 @@ import {
   Check,
   CircleDollarSign,
   Download,
+  ShieldCheck,
+  Upload,
   FileSpreadsheet,
   FileText,
   LayoutGrid,
@@ -22,7 +24,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -35,13 +37,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import rahamaLogo from "@/assets/rahama-logo.jpg.asset.json";
+const rahamaLogo = { url: "/rahama-logo.jpg" };
 import {
   PAYMENT_METHODS,
   PAYMENT_STATUSES,
   PROPERTY_TYPES,
   SAMPLE_SALES,
   calculateBalance,
+  createBackup,
+  getPaymentPlan,
+  parseBackup,
   filterSales,
   generatePropertyReference,
   generateReceiptNumber,
@@ -97,6 +102,8 @@ function Index() {
   const [receipt, setReceipt] = useState<SaleRecord | null>(null);
   const [viewMode, setViewMode] = useState<"table" | "cards">("table");
   const isMobile = useIsMobile();
+  const [backupMessage, setBackupMessage] = useState("");
+  const restoreInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     try {
@@ -238,6 +245,15 @@ function Index() {
       return;
     }
 
+    if (draft.amountPaid > draft.agreedPrice) {
+      setFormError("Amount paid cannot be more than the agreed price.");
+      return;
+    }
+    if (draft.amountPaid < draft.agreedPrice && !draft.settlementDate) {
+      setFormError("Add the date the buyer promised to settle the remaining balance.");
+      return;
+    }
+
     const normalizedStatus: PaymentStatus =
       draft.amountPaid >= draft.agreedPrice
         ? "Fully Paid"
@@ -258,6 +274,34 @@ function Index() {
       editingId ? current.map((sale) => (sale.id === editingId ? saved : sale)) : [saved, ...current],
     );
     setDialogOpen(false);
+  }
+
+  function downloadBackup() {
+    const now = new Date();
+    const backup = createBackup(sales, now.toISOString());
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `rahama-sales-backup-${now.toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    try { window.localStorage.setItem(`${STORAGE_KEY}-last-backup`, now.toISOString()); } catch { /* ignore */ }
+    setBackupMessage(`Backup saved with ${sales.length} records.`);
+  }
+
+  async function restoreBackup(file: File) {
+    const result = parseBackup(await file.text());
+    if (!result.ok) {
+      setBackupMessage(result.error);
+      return;
+    }
+    const when = result.createdAt ? new Date(result.createdAt).toLocaleString("en-NG") : "an unknown date";
+    if (!window.confirm(`Restore ${result.records.length} records from ${when}? This replaces the ${sales.length} records currently on this device.`)) return;
+    try { window.localStorage.setItem(`${STORAGE_KEY}-before-restore`, JSON.stringify(sales)); } catch { /* ignore */ }
+    setSales(result.records);
+    setFilters(INITIAL_FILTERS);
+    setBackupMessage(`Restored ${result.records.length} records. Your previous records were kept as a safety copy.`);
   }
 
   function exportCsv() {
@@ -374,6 +418,26 @@ function Index() {
                 <span className="hidden items-center gap-1.5 text-xs text-muted-foreground sm:flex">
                   <span className="size-1.5 rounded-full bg-paid" /> Local worksheet
                 </span>
+                <Button variant="outline" size="sm" onClick={downloadBackup} title="Download a protected backup of all records">
+                  <ShieldCheck aria-hidden="true" />
+                  <span className="hidden sm:inline">Backup</span>
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => restoreInput.current?.click()} title="Restore records from a backup file">
+                  <Upload aria-hidden="true" />
+                  <span className="hidden sm:inline">Restore</span>
+                </Button>
+                <input
+                  ref={restoreInput}
+                  type="file"
+                  accept="application/json,.json"
+                  className="hidden"
+                  aria-label="Restore backup file"
+                  onChange={(event) => {
+                    const file = event.currentTarget.files?.[0];
+                    event.currentTarget.value = "";
+                    if (file) void restoreBackup(file);
+                  }}
+                />
                 <Button variant="outline" size="sm" onClick={exportCsv} disabled={visibleSales.length === 0}>
                   <Download aria-hidden="true" />
                   <span className="hidden sm:inline">Export CSV</span>
@@ -789,6 +853,13 @@ function Index() {
         }}
       />
 
+      {backupMessage && (
+        <div role="status" className="no-print fixed inset-x-3 bottom-4 z-50 mx-auto flex max-w-md items-center justify-between gap-3 rounded-md border bg-card px-4 py-3 text-sm shadow-lg">
+          <span>{backupMessage}</span>
+          <Button size="sm" variant="ghost" onClick={() => setBackupMessage("")}>OK</Button>
+        </div>
+      )}
+
       <article className="print-area" aria-label="Printable sale receipt">
         {receipt && <Receipt sale={receipt} />}
       </article>
@@ -1096,6 +1167,15 @@ function SaleDialog({
                     <SelectContent>{PAYMENT_METHODS.map((method) => <SelectItem key={method} value={method}>{method}</SelectItem>)}</SelectContent>
                   </Select>
                 </FormField>
+                <FormField id="settlementDate" label="Promised settlement date" optional={calculateBalance(draft.agreedPrice, draft.amountPaid) === 0}>
+                  <Input id="settlementDate" type="date" value={draft.settlementDate ?? ""} onChange={(event) => onChange("settlementDate", event.currentTarget.value)} />
+                </FormField>
+                <FormField id="paymentPlan" label="Payment plan">
+                  <Input id="paymentPlan" readOnly value={getPaymentPlan(draft)} className="bg-secondary font-semibold" />
+                </FormField>
+                <FormField id="batchPlan" label="Batch schedule (how remaining balance will be paid)" optional className="sm:col-span-2">
+                  <Textarea id="batchPlan" rows={2} placeholder="e.g. 3 monthly batches of ₦1,000,000 starting January" value={draft.batchPlan ?? ""} onChange={(event) => onChange("batchPlan", event.currentTarget.value)} />
+                </FormField>
                 <FormField id="paymentReference" label="Payment reference / teller" optional className="sm:col-span-2">
                   <Input id="paymentReference" value={draft.paymentReference} onChange={(event) => onChange("paymentReference", event.currentTarget.value)} />
                 </FormField>
@@ -1167,6 +1247,7 @@ function FormField({
 
 function Receipt({ sale }: { sale: SaleRecord }) {
   const balance = calculateBalance(sale.agreedPrice, sale.amountPaid);
+  const plan = getPaymentPlan(sale);
   return (
     <div className="receipt-sheet">
       <header className="receipt-header">
@@ -1215,7 +1296,14 @@ function Receipt({ sale }: { sale: SaleRecord }) {
         </div>
         <div className="receipt-amount-row"><span>Total agreed price</span><strong>{formatNaira(sale.agreedPrice)}</strong></div>
         <div className="receipt-amount-row"><span>Amount paid to date</span><strong>{formatNaira(sale.amountPaid)}</strong></div>
-        <div className="receipt-amount-row receipt-balance"><span>Outstanding balance</span><strong>{formatNaira(balance)}</strong></div>
+        <div className="receipt-amount-row receipt-balance"><span>Remaining balance</span><strong>{formatNaira(balance)}</strong></div>
+        <div className="receipt-amount-row"><span>Payment plan</span><strong>{plan}</strong></div>
+        {balance > 0 && (
+          <>
+            <div className="receipt-amount-row"><span>Promised settlement date</span><strong>{formatDate(sale.settlementDate ?? "")}</strong></div>
+            {sale.batchPlan && <div className="receipt-amount-row"><span>Batch schedule</span><strong>{sale.batchPlan}</strong></div>}
+          </>
+        )}
         <div className="receipt-payment-meta">
           <span>Payment status: <strong>{sale.paymentStatus}</strong></span>
           <span>Method: <strong>{sale.paymentMethod}</strong></span>
@@ -1224,17 +1312,31 @@ function Receipt({ sale }: { sale: SaleRecord }) {
       </div>
 
       <div className="receipt-agent">
-        <span>Sales agent</span><strong>{sale.agentName || "—"}</strong>
+        <span>Sales agent &amp; buyer&apos;s guarantor</span><strong>{sale.agentName || "—"}</strong>
         <span>Agent phone</span><strong>{sale.agentPhone || "—"}</strong>
         <span>Agent code</span><strong>{sale.agentCode || "—"}</strong>
       </div>
+
+      <section className="receipt-agreement">
+        <h3>{balance > 0 ? "Batch payment agreement" : "Guarantor confirmation"}</h3>
+        {balance > 0 ? (
+          <ol>
+            <li>The buyer, {sale.buyerName}, has paid {formatNaira(sale.amountPaid)} of the agreed price of {formatNaira(sale.agreedPrice)}.</li>
+            <li>The buyer agrees to pay the remaining balance of {formatNaira(balance)} in batches{sale.batchPlan ? ` (${sale.batchPlan})` : ""} on or before {formatDate(sale.settlementDate ?? "")}.</li>
+            <li>The agent, {sale.agentName || "the sales agent"}, stands as guarantor for the buyer and shall be responsible for ensuring the balance is paid.</li>
+            <li>Final documents for the property will be released only after full payment. Failure to pay as agreed may lead to review of this sale under company terms.</li>
+          </ol>
+        ) : (
+          <p>Full payment of {formatNaira(sale.agreedPrice)} has been received. The agent, {sale.agentName || "the sales agent"}, stands as guarantor confirming this transaction and the identity of the buyer.</p>
+        )}
+      </section>
 
       <p className="receipt-disclaimer">
         This sale slip records the transaction details and payments received to date. Keep it for your records.
       </p>
       <div className="receipt-signatures">
-        <div><span>Buyer signature</span><i /></div>
-        <div><span>Agent signature</span><i /></div>
+        <div><span>Buyer signature &amp; date</span><i /></div>
+        <div><span>Agent (guarantor) signature</span><i /></div>
         <div><span>Company director</span><i /></div>
       </div>
       <footer className="receipt-footer">

@@ -31,3 +31,4 @@ use the editor.
 
 ## Project decisions
 - Keep the sales worksheet in browser local storage and keep calculations and filtering in a pure shared module, because the requested ledger is browser-local and needs no shared account or database.
+- Serve app images from public/ (not the asset CDN) and pick the Vercel server preset when VERCEL is set, because the app must also be deployable on Vercel.
